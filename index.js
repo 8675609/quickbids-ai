@@ -51,3 +51,24 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });
+// Store labels in-memory (if not already defined)
+const labelStore = {};
+
+app.post('/label', (req, res) => {
+  const { filename, label } = req.body;
+  if (!filename || !label) {
+    return res.status(400).json({ error: 'Missing filename or label.' });
+  }
+  labelStore[filename] = label;
+  res.json({ message: 'Label received', filename, label });
+});
+
+// 🔧 Add this route to handle GET requests
+app.get('/label/:filename', (req, res) => {
+  const { filename } = req.params;
+  const label = labelStore[filename];
+  if (!label) {
+    return res.status(404).json({ error: 'Label not found.' });
+  }
+  res.json({ filename, label });
+});
