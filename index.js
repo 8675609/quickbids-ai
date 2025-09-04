@@ -12,9 +12,16 @@ app.get("/", (req, res) => {
   res.send("QuickBids AI Server is running!");
 });
 
-app.post("/upload", upload.single("video"), (req, res) => {
-  if (!req.file) return res.status(400).send("No file uploaded.");
-  res.send({ message: "Upload successful", filename: req.file.filename });
+app.post("/upload", (req, res) => {
+  upload.single("video")(req, res, function (err) {
+    if (err) {
+      return res.status(500).send({ error: "Upload failed", details: err.message });
+    }
+    if (!req.file) {
+      return res.status(400).send("No file uploaded.");
+    }
+    res.send({ message: "Upload successful", filename: req.file.filename });
+  });
 });
 
 const PORT = process.env.PORT || 3000;
