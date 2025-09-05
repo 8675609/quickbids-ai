@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>QuickBids Contributor Portal</title>
+</head>
+<body>
+  <h2>Upload Training Video</h2>
+  <form id="uploadForm" enctype="multipart/form-data">
+    <input type="file" name="video" accept="video/*" required />
+    <input type="text" name="filename" placeholder="Filename (e.g. site-12-video-1)" required />
+    <input type="text" name="labels" placeholder="Labels (comma separated, e.g. striping, prep, paint)" required />
+    <button type="submit">Upload</button>
+  </form>
+
+  <pre id="responseBox"></pre>
+
+  <script>
+    document.getElementById("uploadForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const form = e.target;
+      const file = form.video.files[0];
+      const filename = form.filename.value;
+      const labels = form.labels.value.split(",").map(s => s.trim());
+
+      // 1. Upload file
+      const videoFormData = new FormData();
+      videoFormData.append("video", file);
+
+      const uploadRes = await fetch("https://quickbids-ai-production.up.railway.app/upload", {
+        method: "POST",
+        body: videoFormData
+      });
+
+      if (!uploadRes.ok) {
+        document.getElementById("responseBox").innerText = "Upload failed.";
+        return;
+      }
+
+      // 2. Submit labels
+      const labelRes = await fetch("https://quickbids-ai-production.up.railway.app/label", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ filename, label: labels })
+      });
+
+      const result = await labelRes.json();
+      document.getElementById("responseBox").innerText = JSON.stringify(result, null, 2);
+    });
+  </script>
+</body>
+</html>
